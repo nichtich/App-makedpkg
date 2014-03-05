@@ -22,6 +22,7 @@ sub opt_spec {
         [ "verbose|v", "verbose output" ],
         [ "templates|t=s", "template directory" ],
         [ "dry|n", "don't build, just show" ],
+        [ "prepare|p", "prepare build" ],
         [ "force|f", "use the force, Luke!" ],
         [ "init", "initialize template directory makedpkg/" ],
     );
