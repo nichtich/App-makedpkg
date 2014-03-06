@@ -47,15 +47,17 @@ sub validate_args {
 }
 
 sub read_config {
-    my ($self, $file, $config) = @_;
+    my ($self, $file) = @_;
 
-    if (defined $file) {
-        $config = Config::Any->load_files({ files => [$file], use_ext => 1, flatten_to_hash => 1 });
-    } else {
-        $config = Config::Any->load_stems({ stems => ['makedpkg'], use_ext => 1, flatten_to_hash => 1 });
-    }
+    my $config = eval {
+        if (defined $file) {
+            Config::Any->load_files({ files => [$file], use_ext => 1, flatten_to_hash => 1 });
+        } else {
+            Config::Any->load_stems({ stems => ['makedpkg'], use_ext => 1, flatten_to_hash => 1 });
+        }
+    };
 
-    if (keys %$config) {
+    if ($config && keys %$config) {
         ($file) = keys %$config;
         ($config) = values %$config;
     } else {

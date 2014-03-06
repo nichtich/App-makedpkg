@@ -24,7 +24,13 @@ sub write_yaml(@) {
 
 # always start in a new, temporary directory
 our $DIR;
-sub path { $DIR.(@_ ? '/'.$_[0] : ''); }
-chdir ($DIR = tempdir);
+sub path { 
+    $DIR.(@_ ? '/'.$_[0] : ''); 
+}
+sub start_test {
+    chdir ($DIR = tempdir);
+}
+
+start_test;
 
 1;
