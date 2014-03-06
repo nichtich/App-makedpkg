@@ -6,7 +6,7 @@ use File::Temp qw(tempdir);
 
 sub write_file($$) {
     open my $fh, ">", $_[0];
-    print $fh $_[1];
+    print $fh $_[1] . "\n";
     close $fh;
 }
 
