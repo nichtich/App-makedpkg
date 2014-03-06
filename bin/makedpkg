@@ -12,6 +12,16 @@ App::makedpkg->run;
 The B<makedpkg> command line application helps building Debian packages based
 on configuration files and templates.
 
+=head1 OPTIONS
+
+    -c --config        configuration file (makedpkg.{yml,json,...} by default)
+    -v --verbose       enable verbose output
+    -t --templates     template directory (./makedpkg by default)
+    --init             initialize or update template directory
+    -n --dry           don't build, just show
+    -p --prepare       don't build, just prepare sources
+    -f --force         use the force, Luke!
+
 =head1 CONFIGURATION
 
 Unless explicitly specified via the C<config> option, a config file with name
@@ -98,6 +108,12 @@ and as list which directories and files to copy from to which directory
 Build configuration, consisting of C<directory>, C<before>, C<copy>, and
 C<options>.
 
+=item verbose
+
+Autmatically set to C<0> or C<1> by the C<--verbose> command line flag, this
+variable is used to disable or enable verbose mode of C<debhelper> in the default
+C<rules> template.
+
 =back
 
 =head1 TEMPLATES
@@ -145,13 +161,9 @@ C<upstart>
 
 =back
 
-=head1 OPTIONS
+=head1 SEE ALSO
 
-    -c --config        configuration file
-    -v --verbose       verbose output
-    -t --templates     template directory
-    -n --dry           don't build, just show
-    -f --force         use the force, Luke!
-    --init             initialize template directory ./makedpkg
+The L<http://www.debian.org/doc/manuals/maint-guide/|Debian New Maintainers'
+Guide>, especially chaper 4 to 6.
 
 =encoding utf8

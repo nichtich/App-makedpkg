@@ -112,6 +112,7 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     expand_config($self->{config});
+    $self->{config}->{verbose} ||= $opt->verbose ? 1 : 0;
 
     my $template_dir = $opt->templates;
 

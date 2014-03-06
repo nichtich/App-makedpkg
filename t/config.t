@@ -1,54 +1,48 @@
 use strict;
 use Test::More;
-use App::Cmd::Tester;
 use App::makedpkg;
-use File::Temp qw(tempdir);
 
-sub write_file($$) {
-    open my $fh, ">", $_[0];
-    print $fh $_[1] . "\n";
-    close $fh;
-}
+use lib 't/lib';
+use App::makedpkg::Tester;
 
-chdir (my $tempdir = tempdir);
-mkdir "$tempdir/makedpkg"; # implicit template directory
+mkdir path("makedpkg"); # implicit template directory
 
-my $res = test_app('App::makedpkg' => ['-n']);
-ok $res->exit_code;
-is $res->error, "error reading config file \n", "error reading config file ";
+makedpkg '-n';
+ok exit_code;
+is error, "error reading config file \n", "error reading config file ";
 
-$res = test_app('App::makedpkg' => [qw(--config notfound.yml -n)]);
-ok $res->exit_code;
-is $res->error, "error reading config file notfound.yml\n", "error reading config file notfound.yml";
+makedpkg qw(--config notfound.yml -n);
+ok exit_code;
+is error, "error reading config file notfound.yml\n", "error reading config file notfound.yml";
 
 write_file "malformed.yml", ".";
 
-$res = test_app('App::makedpkg' => [qw(--config malformed.yml -n)]);
-ok $res->exit_code;
-is $res->error, "error reading config file malformed.yml\n", "error reading config file malformed.yml";
+makedpkg qw(--config malformed.yml -n);
+ok exit_code;
+is error, "error reading config file malformed.yml\n", "error reading config file malformed.yml";
 
 write_file "ok.yml", "foo: bar";
-$res = test_app('App::makedpkg' => [qw(--config ok.yml --verbose -n)]);
-ok !$res->exit_code;
-is $res->output, "---\nfoo: bar\n";
+makedpkg qw(--config ok.yml --verbose -n);
+ok !exit_code;
+is output, "---\nfoo: bar\nverbose: 1\n";
 
 write_file "makedpkg.yml", "foo: '`pwd`'";
-$res = test_app('App::makedpkg' => [qw(--verbose -n)]);
-ok !$res->exit_code;
-is $res->output, "---\nfoo: $tempdir\n", "expanded config";
+makedpkg qw(--verbose -n);
+ok !exit_code;
+is output, "---\nfoo: ".path."\nverbose: 1\n", "expanded config";
 
 write_file "makedpkg.yml", "foo:\n  bar: '`pwd`'";
-$res = test_app('App::makedpkg' => [qw(--verbose -n)]);
-ok !$res->exit_code;
-is $res->output, "---\nfoo:\n  bar: $tempdir\n", "expanded config deeply";
+makedpkg qw(--verbose -n);
+ok !exit_code;
+is output, "---\nfoo:\n  bar: ".path."\nverbose: 1\n", "expanded config deeply";
 
 write_file "makedpkg.yml", "foo: '`rm /dev/null`'";
-$res = test_app('App::makedpkg' => [qw(--verbose -n)]);
-ok $res->exit_code;
-is $res->error, "`rm /dev/null` died with exit code 1\n";
+makedpkg qw(--verbose -n);
+ok exit_code;
+is error, "`rm /dev/null` died with exit code 1\n";
 
-$res = test_app('App::makedpkg' => ['-t',"$tempdir/notfound",'-n']);
-ok $res->exit_code;
-is $res->error, "error reading template directory $tempdir/notfound\n", "error reading template directory";
+makedpkg '-t',path("notfound"),'-n';
+ok exit_code;
+is error, "error reading template directory ".path("notfound")."\n", "error reading template directory";
 
 done_testing;
