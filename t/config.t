@@ -15,28 +15,28 @@ makedpkg qw(--config notfound.yml -n);
 ok exit_code;
 is error, "error reading config file notfound.yml\n", "error reading config file notfound.yml";
 
-write_file "malformed.yml", ".";
+write_yaml "malformed.yml", ".";
 
 makedpkg qw(--config malformed.yml -n);
 ok exit_code;
 is error, "error reading config file malformed.yml\n", "error reading config file malformed.yml";
 
-write_file "ok.yml", "foo: bar";
+write_yaml "ok.yml", "foo: bar";
 makedpkg qw(--config ok.yml --verbose -n);
 ok !exit_code;
 is output, "---\nfoo: bar\nverbose: 1\n";
 
-write_file "makedpkg.yml", "foo: '`pwd`'";
+write_yaml "makedpkg.yml", "foo: '`pwd`'";
 makedpkg qw(--verbose -n);
 ok !exit_code;
 is output, "---\nfoo: ".path."\nverbose: 1\n", "expanded config";
 
-write_file "makedpkg.yml", "foo:\n  bar: '`pwd`'";
+write_yaml "makedpkg.yml", "foo:\n  bar: '`pwd`'";
 makedpkg qw(--verbose -n);
 ok !exit_code;
 is output, "---\nfoo:\n  bar: ".path."\nverbose: 1\n", "expanded config deeply";
 
-write_file "makedpkg.yml", "foo: '`rm /dev/null`'";
+write_yaml "makedpkg.yml", "foo: '`rm /dev/null`'";
 makedpkg qw(--verbose -n);
 ok exit_code;
 is error, "`rm /dev/null` died with exit code 1\n";

@@ -10,15 +10,15 @@ our $RESULT;
 our @cmd = qw(stdout stderr output error exit_code);
 eval "sub $_() { \$RESULT->$_ }" for @cmd;
 
-our @EXPORT = (qw(makedpkg write_file path), @cmd);
+our @EXPORT = (qw(makedpkg write_yaml path), @cmd);
 
 sub makedpkg(@) {
     $RESULT = test_app('App::makedpkg' => [@_]);
 }
 
-sub write_file(@) {
-    open my $fh, ">", $_[0];
-    print $fh $_[1] . "\n";
+sub write_yaml(@) {
+    open my $fh, ">", shift;
+    print $fh join "\n", "---", @_, "";
     close $fh;
 }
 

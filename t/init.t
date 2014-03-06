@@ -5,7 +5,7 @@ use App::makedpkg;
 use lib 't/lib';
 use App::makedpkg::Tester;
 
-write_file "makedpkg.yml", "foo: bar";
+write_yaml "makedpkg.yml", "foo: bar";
 
 my @templates = qw(changelog control rules);
 
@@ -29,7 +29,7 @@ ok -e path("makedpkg/rules"), "created rules";
 
 =cut
 # prepare build
-write_file "makedpkg.yml", "foo: bar";
+write_yaml "makedpkg.yml", "foo: bar";
 system("cat makedpkg.yml");
 makedpkg '-v','-p';
 ok exit_code, 'prepared build';
