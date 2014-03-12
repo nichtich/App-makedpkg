@@ -150,7 +150,7 @@ sub prepare_debuild {
     my $template_files = list_dir($template_dir);
 
     # say "templates in $template_dir\n";
-    foreach my $template (@$template_files) {
+    foreach my $template (sort @$template_files) {
         $template = $opt->templates.'/'.$template;
         next unless -f $template;
 
