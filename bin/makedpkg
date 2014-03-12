@@ -85,28 +85,48 @@ architecture, to be used in C<control> template
 
 description, to be used in C<control> template
 
-=item install
+=item build
 
-package files, to be used in C<install> template. Files can be specified as
-mapping which files to copy to which directory, such as
+Build configuration, consisting of C<directory>, C<before>, C<files>, and
+C<options>.
 
-    install:
+=over
+
+=item directory
+
+Directory to build package in (default is C<debuild>).
+
+=item before
+
+List of commands to execute before build. Commands are executed before files
+are copied to the package directory, so more files can be generated or
+processed via commands listed in this field.
+
+=item files
+
+package files, to be used in C<install> template (L<see Debian
+manual|http://www.debian.org/doc/manuals/maint-guide/dother.en.html#install>).
+Files can be specified as mapping which files to copy to which directory, such
+as
+
+    files:
         copy:
             "lib/*": "srv/myapp/lib"
             "index.html": "srv/myapp"
 
-and as list which directories and files to copy from to which directory
+and/or as list which directories and files to copy from to which directory
 
-    install:
+    files:
         to: srv/myapp
         from:
             - lib
             - index.html
 
-=item build
+=item options
 
-Build configuration, consisting of C<directory>, C<before>, C<copy>, and
-C<options>.
+...
+
+=back
 
 =item verbose
 

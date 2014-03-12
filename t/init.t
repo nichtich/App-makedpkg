@@ -23,8 +23,11 @@ ok(-e path("makedpkg/$_"), "created $_") foreach @templates;
 unlink path("makedpkg/rules");
 makedpkg '--init';
 ok !exit_code;
-like output, qr{kept makedpkg/control}m;
-like output, qr{created makedpkg/rules}m;
+is output, <<OUTPUT;
+kept makedpkg/changelog
+kept makedpkg/control
+created makedpkg/rules
+OUTPUT
 ok -e path("makedpkg/rules"), "created rules";
 
 =cut

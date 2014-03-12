@@ -7,7 +7,7 @@ use App::makedpkg::Tester;
 
 mkdir path("makedpkg"); # implicit template directory
 
-my $common_output = "\nverbose: 1\nbuilding into debuild\nexec debuild \n";
+my $common_output = "\nverbose: 1\n---\nbuilding into debuild\nexec debuild \n";
 
 makedpkg '-n';
 ok exit_code;

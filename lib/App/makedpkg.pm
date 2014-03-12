@@ -116,50 +116,15 @@ sub execute {
     expand_config($self->{config});
     $self->{config}->{verbose} ||= $opt->verbose ? 1 : 0;
 
-    my $template_dir = $opt->templates;
-
     if ($opt->verbose) {
         $self->_dump( $self->{config} );
-        # say "templates in $template_dir\n";
     }
 
     if ($opt->init) {
         return $self->init_templates($opt, $args);
     }
 
-    my $template_files = list_dir($template_dir);
-
     $self->prepare_debuild($opt, $args);
-
-    my $conf = $self->{config};
-    my $build_dir = $conf->{build}{directory};
-    unless ($opt->dry) {
-        foreach my $template (@$template_files) {
-            $template = $opt->templates.'/'.$template;
-            next unless -f $template;
-
-            my $filename = "$build_dir/debian/".basename($template);
-
-            open my $fh, ">", $filename;
-            print $fh fill_in_file($template, HASH => $conf);
-            close $fh;
-
-            say $filename if $opt->verbose;
-        }
-
-        # TODO: dynamically build 'install' file
-
-        foreach (@{ $conf->{build}{before} || [ ] }) {
-            `$_`;
-            die "failed to run $_\n" if $?;
-        }
-
-        # TODO: reuse 'install' config
-        foreach (@{ $conf->{build}{copy} || [ ] }) {
-            `cp -r $_ $build_dir/$_`;
-            die "failed to copy $_\n" if $?;
-        }
-    }
 
     $self->exec_debuild($opt, $args);
 }
@@ -170,11 +135,85 @@ sub prepare_debuild {
     $self->{config}{build} //= { };
     $self->{config}{build}{directory} //= 'debuild';
 
-    for ($self->{config}{build}{directory}) {
-        say "building into $_" if $opt->verbose;
-        remove_tree($_) unless $opt->dry;
-        make_path("$_/source/debian") unless $opt->dry;
+    my $dir = $self->{config}{build}{directory};
+    say "building into $dir" if $opt->verbose;
+    return if $opt->dry;
+
+    remove_tree($dir);
+    make_path("$dir/source/debian");
+
+    my $conf = $self->{config};
+    my $build_dir = $conf->{build}{directory};
+
+    # copy and fill in template files
+    my $template_dir = $opt->templates;
+    my $template_files = list_dir($template_dir);
+
+    # say "templates in $template_dir\n";
+    foreach my $template (@$template_files) {
+        $template = $opt->templates.'/'.$template;
+        next unless -f $template;
+
+        $self->_create_debian_file( 
+            $opt, 
+            basename($template),
+            fill_in_file($template, HASH => $conf)
+        );
     }
+
+    # execute commands before build
+    foreach (@{ $self->{config}{build}{before} || [ ] }) {
+        say "before: $_" if $opt->verbose;
+        `$_`;
+        die "failed to run $_\n" if $?;
+    }
+
+    if (my $files = $self->{config}{build}{files}) {
+        my @install;
+    
+        foreach my $source (sort keys %{ $files->{copy} || { } }) {
+            if ($source =~ qr{^(.*)/\*$}) {
+                make_path(my $path = "$build_dir/$1");
+                `cp -r $source $path`;
+            } else {
+                make_path($1) if $source =~ qr{^(.*)/[^/]+$};
+                `cp -r $source $build_dir/$source`;
+            }
+            die "failed to copy $source\n" if $?;
+            
+            push @install, "$source " . $files->{copy}->{$source};
+        }
+
+        if ($files->{to} and $files->{from}) {
+            foreach my $from (@{ $files->{from} }) {
+                if ($from =~ qr{^(.*)/[^/]+$}) {
+                    make_path("$build_dir/$1"); 
+                }
+                `cp -r $from $build_dir/$from`;
+
+                my $target = $from;
+                $target =~ s{/[^/]+}{};
+                push @install, "$from ".$files->{to}."/$target";
+            }
+        }
+
+        unless ( grep { $_ eq 'install' } @$template_files ) {
+            $self->_create_debian_file( $opt, 
+                'install', join("\n", @install, '') );
+        }
+    }
+}
+
+sub _create_debian_file {
+    my ($self, $opt, $name, $contents) = @_;
+
+    my $filename = $self->{config}{build}{directory} . "/source/debian/$name";
+
+    open my $fh, ">", $filename;
+    print $fh $contents;
+    close $fh;
+
+    say $filename if $opt->verbose;
 }
 
 sub exec_debuild {
@@ -221,6 +260,7 @@ sub _dump {
         eval "require $pkg";
         unless ( $@ ) { 
             eval "print ${pkg}::Dump(\$data);";
+            say "---";
             return; 
         }
     }
