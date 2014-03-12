@@ -7,6 +7,8 @@ use App::makedpkg::Tester;
 
 mkdir path("makedpkg"); # implicit template directory
 
+my $common_output = "\nverbose: 1\nbuilding into debuild\nexec debuild \n";
+
 makedpkg '-n';
 ok exit_code;
 is error, "error reading config file \n", "error reading config file ";
@@ -24,17 +26,17 @@ is error, "error reading config file malformed.yml\n", "error reading config fil
 write_yaml "ok.yml", "foo: bar";
 makedpkg qw(--config ok.yml --verbose -n);
 ok !exit_code;
-is output, "---\nfoo: bar\nverbose: 1\n";
+is output, "---\nfoo: bar$common_output";
 
 write_yaml "makedpkg.yml", "foo: '`pwd`'";
 makedpkg qw(--verbose -n);
 ok !exit_code;
-is output, "---\nfoo: ".path."\nverbose: 1\n", "expanded config";
+is output, "---\nfoo: ".path.$common_output, "expanded config";
 
 write_yaml "makedpkg.yml", "foo:\n  bar: '`pwd`'";
 makedpkg qw(--verbose -n);
 ok !exit_code;
-is output, "---\nfoo:\n  bar: ".path."\nverbose: 1\n", "expanded config deeply";
+is output, "---\nfoo:\n  bar: ".path.$common_output, "expanded config deeply";
 
 write_yaml "makedpkg.yml", "foo: '`rm /dev/null`'";
 makedpkg qw(--verbose -n);

@@ -124,24 +124,15 @@ sub execute {
     }
 
     if ($opt->init) {
-        return $self->init($template_dir, $opt);
+        return $self->init_templates($opt, $args);
     }
 
     my $template_files = list_dir($template_dir);
 
+    $self->prepare_debuild($opt, $args);
+
     my $conf = $self->{config};
-    $conf->{build} //= { };
-    $conf->{build}{directory} //= 'debuild';
-
-    # TODO: print build directory if verbose
-
     my $build_dir = $conf->{build}{directory};
-
-    unless ($opt->dry) {
-        remove_tree($build_dir);
-        make_path("$build_dir/source/debian");
-    }
-
     unless ($opt->dry) {
         foreach my $template (@$template_files) {
             $template = $opt->templates.'/'.$template;
@@ -168,16 +159,43 @@ sub execute {
             `cp -r $_ $build_dir/$_`;
             die "failed to copy $_\n" if $?;
         }
+    }
 
-        unless ($opt->prepare) { 
-            exec "cd debuild/source && debuild ".($conf->{build}{options} || '');
-        }
+    $self->exec_debuild($opt, $args);
+}
+
+sub prepare_debuild {
+    my ($self, $opt, $args) = @_;
+
+    $self->{config}{build} //= { };
+    $self->{config}{build}{directory} //= 'debuild';
+
+    for ($self->{config}{build}{directory}) {
+        say "building into $_" if $opt->verbose;
+        remove_tree($_) unless $opt->dry;
+        make_path("$_/source/debian") unless $opt->dry;
     }
 }
 
-sub init {
-    my ($self, $template_dir, $opt) = @_;
+sub exec_debuild {
+    my ($self, $opt, $args) = @_;
 
+    return if $opt->prepare;
+    
+    my $options = ($self->{config}{build}{options} || '');
+
+    if ($opt->dry) {
+        say "exec debuild $options";
+    } else {
+        chdir $self->{config}{build}{directory} . '/source';
+        exec "debuild $options";
+    }
+}
+
+sub init_templates {
+    my ($self, $opt) = @_;
+
+    my $template_dir = $opt->templates;
     $template_dir = 'makedpkg' if $template_dir eq $dist_dir;
     make_path($template_dir) unless $opt->dry;
 
