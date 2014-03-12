@@ -70,7 +70,9 @@ debuild/source/debian/install
 debuild/source/debian/rules
 DEBUILD
 
-is `cat debuild/source/debian/install`, <<INSTALL, 'install file';
+my $install = `cat debuild/source/debian/install`;
+$install =~ s/\n$//g;
+is "$install\n", <<INSTALL, 'install file';
 index.html srv/myapp
 lib/* srv/myapp/lib
 files/demo.html srv/myapp/more/files

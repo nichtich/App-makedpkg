@@ -259,8 +259,9 @@ sub _dump {
     for my $pkg (qw(YAML::XS YAML::Syck YAML)) {
         eval "require $pkg";
         unless ( $@ ) { 
-            eval "print ${pkg}::Dump(\$data);";
-            say "---";
+            my $dump = eval "${pkg}::Dump(\$data);";
+            $dump =~ s/\n$//m;
+            say "$dump\n---";
             return; 
         }
     }
