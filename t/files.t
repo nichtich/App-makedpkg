@@ -22,6 +22,7 @@ build:
             "lib/*": "srv/myapp/lib"
         to: srv/myapp/more
         from:
+            - faq.html
             - files/demo.html
             - some/docs
 YAML
@@ -34,6 +35,7 @@ ok !exit_code;
 make_path('lib');
 write_file 'lib/foo', 'bar';
 write_file 'index.html', 'Hello!';
+write_file 'faq.html', 'Hello!';
 make_path('some/docs');
 write_file 'some/docs/readme.txt', '...';
 make_path('files');
@@ -59,6 +61,7 @@ debuild/debian/changelog
 debuild/debian/control
 debuild/debian/install
 debuild/debian/rules
+debuild/faq.html
 debuild/files
 debuild/files/demo.html
 debuild/index.html
@@ -74,6 +77,7 @@ $install =~ s/\n$//g;
 is "$install\n", <<INSTALL, 'install file';
 index.html srv/myapp
 lib/* srv/myapp/lib
+faq.html srv/myapp/more
 files/demo.html srv/myapp/more/files
 some/docs srv/myapp/more/some
 INSTALL

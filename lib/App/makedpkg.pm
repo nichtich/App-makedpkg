@@ -192,8 +192,9 @@ sub prepare_debuild {
                 `cp -r $from $build_dir/$from`;
 
                 my $target = $from;
-                $target =~ s{/[^/]+}{};
-                push @install, "$from ".$files->{to}."/$target";
+                $target =~ s{/?[^/]+$}{};
+                $target = "/$target" if $target ne '';
+                push @install, "$from ".$files->{to}.$target;
             }
         }
 
