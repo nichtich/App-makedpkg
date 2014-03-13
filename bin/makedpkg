@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
-
-#ABSTRACT: Build Debian Packages based on templates
+#ABSTRACT: Facilitate building Debian packages with templates
 #PODNAME: makedpkg
 #VERSION
 
@@ -26,18 +25,7 @@ on configuration files and templates.
 
 Unless explicitly specified via the C<config> option, a config file with name
 C<makedpkg.yaml> (or any other extension recognized by L<Config::Any>) is
-expected. After reading the config file, all values having the form C<`...`>
-are expanded by executing C<...> in a shell. For instance
-
-    curdir: `pwd`
-
-Will be expanded by setting C<curdir> to the output of command C<pwd>. To give
-a more complex example, the following config file value can be used to get the
-date of the latest git commit in RFC form: 
-
-    timestamp: "`git log -n1 --format=\"%ad\" --date=rfc`"
-
-Important configuration variables include:
+expected. Important configuration variables include:
 
 =over 4
 
@@ -71,7 +59,7 @@ priority to be used in C<control> template (for instance C<extra>)
 
 =item build_depends
 
-build dependencies, to be used in C<control> template (for instance C<<perl (>= 5.14)>>)
+build dependencies, to be used in C<control> template (for instance C<< perl (>= 5.14) >>)
 
 =item binary_depends
 
@@ -121,10 +109,11 @@ and/or as list which directories and files to copy from to which directory
         from:
             - lib
             - index.html
+        
+=item command
 
-=item options
-
-...
+Command to execute build. Set to C<debuild> by default. This option can be used
+for instance to add command line options, e.g. C<debuils -uc -us>.
 
 =back
 
@@ -136,18 +125,31 @@ C<rules> template.
 
 =back
 
+=head1 CONFIGURATON EXPANSION
+
+After reading the config file, all values having the form C<`...`> are expanded
+by executing C<...> in a shell. For instance
+
+    curdir: `pwd`
+
+Will be expanded by setting C<curdir> to the output of command C<pwd>. To give
+a more complex example, the following config file value can be used to get the
+date of the latest git commit in RFC form: 
+
+    timestamp: "`git log -n1 --format=\"%ad\" --date=rfc`"
+
 =head1 TEMPLATES
 
 Template are evaluated with L<Text::Template>, so make sure to escape braces
-(C<{> and C<}> with a backslash C<\>. All configuration values are available as
-template variables.
+(C<{> and C<}>) with a backslash (C<\>). All configuration values are available
+as template variables.
 
 The CPAN distribution of this packages includes a set of default templates
 which are used if no template directory is selected with option C<templates>.
-use C<--init> to copy these default templates into a subdirectory C<makedpkg>
+use C<--init> to copy these default templates into subdirectory C<makedpkg>
 for further modification.
 
-Typical templates files:
+Typical templates files include:
 
 =over
 
@@ -183,7 +185,8 @@ C<upstart>
 
 =head1 SEE ALSO
 
-The L<http://www.debian.org/doc/manuals/maint-guide/|Debian New Maintainers'
-Guide>, especially chaper 4 to 6.
+The L<Debian New Maintainers'
+Guide|http://www.debian.org/doc/manuals/maint-guide/>, especially chaper 4 to
+6.
 
 =encoding utf8

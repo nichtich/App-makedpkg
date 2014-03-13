@@ -1,5 +1,5 @@
 package App::makedpkg;
-#ABSTRACT: Build Debian Packages based on templates
+#ABSTRACT: Facilitate building Debian packages with templates
 #VERSION
 use strict;
 use v5.10.0;
@@ -221,13 +221,13 @@ sub exec_debuild {
 
     return if $opt->prepare;
     
-    my $options = ($self->{config}{build}{options} || '');
+    my $command = $self->{config}{build}{command} || 'debuild';
 
     if ($opt->dry) {
-        say "exec debuild $options";
+        say "exec $command";
     } else {
         chdir $self->{config}{build}{directory};
-        exec "debuild $options";
+        exec $command;
     }
 }
 
