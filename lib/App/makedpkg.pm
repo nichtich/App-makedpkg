@@ -140,7 +140,7 @@ sub prepare_debuild {
     return if $opt->dry;
 
     remove_tree($dir);
-    make_path("$dir/source/debian");
+    make_path("$dir/debian");
 
     my $conf = $self->{config};
     my $build_dir = $conf->{build}{directory};
@@ -207,7 +207,7 @@ sub prepare_debuild {
 sub _create_debian_file {
     my ($self, $opt, $name, $contents) = @_;
 
-    my $filename = $self->{config}{build}{directory} . "/source/debian/$name";
+    my $filename = $self->{config}{build}{directory} . "/debian/$name";
 
     open my $fh, ">", $filename;
     print $fh $contents;
@@ -226,7 +226,7 @@ sub exec_debuild {
     if ($opt->dry) {
         say "exec debuild $options";
     } else {
-        chdir $self->{config}{build}{directory} . '/source';
+        chdir $self->{config}{build}{directory};
         exec "debuild $options";
     }
 }

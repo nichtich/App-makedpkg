@@ -45,11 +45,11 @@ makedpkg '--prepare', '--verbose';
 ok !exit_code;
 is output_no_config, <<OUTPUT;
 building into debuild
-debuild/source/debian/changelog
-debuild/source/debian/control
-debuild/source/debian/rules
+debuild/debian/changelog
+debuild/debian/control
+debuild/debian/rules
 before: pwd
-debuild/source/debian/install
+debuild/debian/install
 OUTPUT
 
 is `find debuild | sort`, <<DEBUILD, 'files copied';
@@ -62,15 +62,14 @@ debuild/lib/foo
 debuild/some
 debuild/some/docs
 debuild/some/docs/readme.txt
-debuild/source
-debuild/source/debian
-debuild/source/debian/changelog
-debuild/source/debian/control
-debuild/source/debian/install
-debuild/source/debian/rules
+debuild/debian
+debuild/debian/changelog
+debuild/debian/control
+debuild/debian/install
+debuild/debian/rules
 DEBUILD
 
-my $install = `cat debuild/source/debian/install`;
+my $install = `cat debuild/debian/install`;
 $install =~ s/\n$//g;
 is "$install\n", <<INSTALL, 'install file';
 index.html srv/myapp
