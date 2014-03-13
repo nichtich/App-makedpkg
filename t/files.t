@@ -54,6 +54,11 @@ OUTPUT
 
 is `find debuild | sort`, <<DEBUILD, 'files copied';
 debuild
+debuild/debian
+debuild/debian/changelog
+debuild/debian/control
+debuild/debian/install
+debuild/debian/rules
 debuild/files
 debuild/files/demo.html
 debuild/index.html
@@ -62,11 +67,6 @@ debuild/lib/foo
 debuild/some
 debuild/some/docs
 debuild/some/docs/readme.txt
-debuild/debian
-debuild/debian/changelog
-debuild/debian/control
-debuild/debian/install
-debuild/debian/rules
 DEBUILD
 
 my $install = `cat debuild/debian/install`;
