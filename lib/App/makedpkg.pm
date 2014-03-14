@@ -10,7 +10,6 @@ use File::Path qw(make_path remove_tree);
 use File::Basename;
 use File::Copy ();
 use Text::Template qw(fill_in_file);
-use YAML::Tiny qw(Dump);
 use Config::Any;
 use File::ShareDir qw(dist_dir);
 
