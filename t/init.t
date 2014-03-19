@@ -7,7 +7,7 @@ use App::makedpkg::Tester;
 
 write_yaml "makedpkg.yml", "foo: bar";
 
-my @templates = qw(changelog control rules);
+my @templates = qw(changelog control rules compat source/format);
 
 makedpkg '--init', '--dry';
 ok !exit_code;
@@ -25,8 +25,10 @@ makedpkg '--init';
 ok !exit_code;
 is output, <<OUTPUT;
 kept makedpkg/changelog
+kept makedpkg/compat
 kept makedpkg/control
 created makedpkg/rules
+kept makedpkg/source/format
 OUTPUT
 ok -e path("makedpkg/rules"), "created rules";
 

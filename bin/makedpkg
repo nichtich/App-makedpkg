@@ -147,7 +147,7 @@ as template variables.
 The CPAN distribution of this packages includes a set of default templates
 which are used if no template directory is selected with option C<templates>.
 use C<--init> to copy these default templates into subdirectory C<makedpkg>
-for further modification.
+for further modification. 
 
 Typical templates files include:
 
@@ -164,6 +164,16 @@ C<changelog> (included as default template)
 =item
 
 C<rules> (included as default template)
+
+=item
+
+C<compat> (included as default template)
+
+=item
+
+C<source/format> (included as default template)
+
+You should remove this file unless you explicitly include the sources.
 
 =item
 

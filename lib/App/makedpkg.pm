@@ -104,7 +104,12 @@ sub expand_config {
 sub list_dir {
     my ($dir) = @_;
     opendir(my $dh, $dir) or die "failed to open $dir: $!\n";
-    my @files = grep { /^[^.]+/ } readdir($dh);
+    my @files = map {
+        my $f = $_;
+        -d "$dir/$_" ? 
+           map { "$f/$_" } @{ list_dir("$dir/$_") }
+        : $_;
+    } grep { /^[^.]+/ } readdir($dh);
     closedir $dh;
     return \@files;
 }
@@ -149,13 +154,12 @@ sub prepare_debuild {
     my $template_files = list_dir($template_dir);
 
     # say "templates in $template_dir\n";
-    foreach my $template (sort @$template_files) {
-        $template = $opt->templates.'/'.$template;
+    foreach my $file (sort @$template_files) {
+        my $template = $opt->templates."/$file";
         next unless -f $template;
 
         $self->_create_debian_file( 
-            $opt, 
-            basename($template),
+            $opt, $file,
             fill_in_file($template, HASH => $conf)
         );
     }
@@ -208,6 +212,7 @@ sub _create_debian_file {
     my ($self, $opt, $name, $contents) = @_;
 
     my $filename = $self->{config}{build}{directory} . "/debian/$name";
+    make_path(dirname($filename));
 
     open my $fh, ">", $filename;
     print $fh $contents;
@@ -245,6 +250,9 @@ sub init_templates {
         } else {
             say "created $template_dir/$file";
             unless ($opt->dry) {
+                if ($file =~ /\//) {
+                    make_path(dirname("$template_dir/$file"));
+                }
                 File::Copy::copy("$dist_dir/$file", "$template_dir/$file");
             }
         }

@@ -48,8 +48,10 @@ ok !exit_code;
 is output_no_config, <<OUTPUT;
 building into debuild
 debuild/debian/changelog
+debuild/debian/compat
 debuild/debian/control
 debuild/debian/rules
+debuild/debian/source/format
 before: pwd
 debuild/debian/install
 OUTPUT
@@ -58,9 +60,12 @@ is `find debuild | sort`, <<DEBUILD, 'files copied';
 debuild
 debuild/debian
 debuild/debian/changelog
+debuild/debian/compat
 debuild/debian/control
 debuild/debian/install
 debuild/debian/rules
+debuild/debian/source
+debuild/debian/source/format
 debuild/faq.html
 debuild/files
 debuild/files/demo.html
