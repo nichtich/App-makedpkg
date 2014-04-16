@@ -1,6 +1,10 @@
 #ABSTRACT: facilityte unit tests
 package App::makedpkg::Tester;
 use strict;
+
+use Test::More;
+plan(skip_all => 'skip tests on Windows') if $^O eq 'MSWin32';
+
 use parent 'Exporter';
 use File::Temp qw(tempdir);
 use App::Cmd::Tester;
