@@ -45,7 +45,7 @@ write_file 'files/demo.html', 'Hi!';
 makedpkg '--prepare', '--verbose';
 
 ok !exit_code;
-is output_no_config, <<OUTPUT;
+is output_no_config."\n", <<OUTPUT;
 building into debuild
 debuild/debian/changelog
 debuild/debian/compat

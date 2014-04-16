@@ -12,7 +12,7 @@ use App::Cmd::Tester;
 # shortcuts to App::Cmd::Tester result
 our $RESULT;
 our @cmd = qw(stdout stderr output error exit_code);
-eval "sub $_() { \$RESULT->$_ }" for @cmd;
+eval "sub $_() { my \$s=\$RESULT->$_; chomp \$s; \$s }" for @cmd;
 
 our @EXPORT = (qw(makedpkg write_file write_yaml path), @cmd);
 

@@ -11,25 +11,23 @@ my @templates = qw(changelog control rules compat source/format);
 
 makedpkg '--init', '--dry';
 ok !exit_code;
-is output, join("\n",map { "created makedpkg/$_" } sort @templates)."\n";
+is output, join("\n",map { "created makedpkg/$_" } sort @templates);
 ok( ! -d path('makedpkg'), "dry init run");
 
 makedpkg '--init';
 ok !exit_code;
-is output, join("\n",map { "created makedpkg/$_" } sort @templates)."\n";
+is output, join("\n",map { "created makedpkg/$_" } sort @templates);
 ok -d path("makedpkg"), "init makedpkg templates";
 ok(-e path("makedpkg/$_"), "created $_") foreach @templates;
 
 unlink path("makedpkg/rules");
 makedpkg '--init';
 ok !exit_code;
-is output, <<OUTPUT;
-kept makedpkg/changelog
+is output, "kept makedpkg/changelog
 kept makedpkg/compat
 kept makedpkg/control
 created makedpkg/rules
-kept makedpkg/source/format
-OUTPUT
+kept makedpkg/source/format";
 ok -e path("makedpkg/rules"), "created rules";
 
 =cut
