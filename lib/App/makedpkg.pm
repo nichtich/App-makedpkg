@@ -2,13 +2,15 @@ package App::makedpkg;
 #ABSTRACT: Facilitate building Debian packages with templates
 #VERSION
 use strict;
-use v5.10.0;
+use warnings;
+use 5.010;
 
 use base qw(App::Cmd::Simple);
  
 use File::Path qw(make_path remove_tree);
 use File::Basename;
 use File::Copy ();
+use File::Find ();
 use Text::Template qw(fill_in_file);
 use Config::Any;
 use File::ShareDir qw(dist_dir);
@@ -26,6 +28,12 @@ sub opt_spec {
         [ "init", "initialize template directory makedpkg/" ],
     );
 }
+
+=head2 validate_args
+
+Validate command line arguments and read config file.
+
+=cut
 
 sub validate_args {
     my ($self, $opt, $args) = @_;
@@ -70,6 +78,25 @@ sub read_config {
     return $config;
 }
 
+=head2 expand_config
+
+Expand C<`...`> configuration values by executing as shell command.
+
+=cut
+
+sub expand_config {
+    my $h = $_[0];
+    return if (ref $h || "") ne 'HASH';
+    foreach my $key (keys %$h) {
+        my $v = $h->{$key};
+        if ( !ref $v and $v =~ /^`(.+)`$/ ) {
+            $h->{$key} = expand_command($1);
+        } else {
+            expand_config($v);
+        }
+    }
+}
+
 sub expand_command {
     my ($cmd, $out) = @_;
 
@@ -88,31 +115,13 @@ sub expand_command {
     return $out;
 }
 
-sub expand_config {
-    my $h = $_[0];
-    return if (ref $h || "") ne 'HASH';
-    foreach my $key (keys %$h) {
-        my $v = $h->{$key};
-        if ( !ref $v and $v =~ /^`(.+)`$/ ) {
-            $h->{$key} = expand_command($1);
-        } else {
-            expand_config($v);
-        }
-    }
-}
+=head2 execute
 
-sub list_dir {
-    my ($dir) = @_;
-    opendir(my $dh, $dir) or die "failed to open $dir: $!\n";
-    my @files = map {
-        my $f = $_;
-        -d "$dir/$_" ? 
-           map { "$f/$_" } @{ list_dir("$dir/$_") }
-        : $_;
-    } grep { /^[^.]+/ } readdir($dh);
-    closedir $dh;
-    return \@files;
-}
+Main method, executed after C<no_chdir>, calling C<expand_config>,
+C<init_templates> (if required), C<prepare_debuild>, and C<exec_debuild> in
+this order.
+
+=cut
 
 sub execute {
     my ($self, $opt, $args) = @_;
@@ -133,6 +142,43 @@ sub execute {
     $self->exec_debuild($opt, $args);
 }
 
+=head2 init_templates
+
+Optionally create template directory and put in default template files.
+
+=cut
+
+sub init_templates {
+    my ($self, $opt) = @_;
+
+    my $template_dir = $opt->templates;
+    $template_dir = 'makedpkg' if $template_dir eq $dist_dir;
+    make_path($template_dir) unless $opt->dry;
+
+    my $templates = _findfiles($dist_dir);
+    foreach my $file (sort @$templates) {
+        if (-e "$template_dir/$file" and !$opt->force) {
+            say "kept $template_dir/$file";
+        } else {
+            say "created $template_dir/$file";
+            unless ($opt->dry) {
+                if ($file =~ /\//) {
+                    make_path(dirname("$template_dir/$file"));
+                }
+                File::Copy::copy("$dist_dir/$file", "$template_dir/$file");
+            }
+        }
+    }
+
+    return;
+}
+
+=head2 prepare_debuild
+
+Create build directory with files from templates and configuration file.
+
+=cut
+
 sub prepare_debuild {
     my ($self, $opt, $args) = @_;
 
@@ -151,7 +197,7 @@ sub prepare_debuild {
 
     # copy and fill in template files
     my $template_dir = $opt->templates;
-    my $template_files = list_dir($template_dir);
+    my $template_files = _findfiles($template_dir);
 
     # say "templates in $template_dir\n";
     foreach my $file (sort @$template_files) {
@@ -221,6 +267,12 @@ sub _create_debian_file {
     say $filename if $opt->verbose;
 }
 
+=head2 prepare_debuild
+
+Execute build command (C<debuild> by default).
+
+=cut
+
 sub exec_debuild {
     my ($self, $opt, $args) = @_;
 
@@ -234,31 +286,6 @@ sub exec_debuild {
         chdir $self->{config}{build}{directory};
         exec $command;
     }
-}
-
-sub init_templates {
-    my ($self, $opt) = @_;
-
-    my $template_dir = $opt->templates;
-    $template_dir = 'makedpkg' if $template_dir eq $dist_dir;
-    make_path($template_dir) unless $opt->dry;
-
-    my $templates = list_dir($dist_dir);
-    foreach my $file (sort @$templates) {
-        if (-e "$template_dir/$file" and !$opt->force) {
-            say "kept $template_dir/$file";
-        } else {
-            say "created $template_dir/$file";
-            unless ($opt->dry) {
-                if ($file =~ /\//) {
-                    make_path(dirname("$template_dir/$file"));
-                }
-                File::Copy::copy("$dist_dir/$file", "$template_dir/$file");
-            }
-        }
-    }
-
-    return;
 }
 
 sub _dump {
@@ -275,15 +302,34 @@ sub _dump {
     }
 }
 
+# Get a list of files in a directory and all subdirectories. 
+# Returns an array reference.
+
+sub _findfiles {
+    my ($dir) = @_;
+    my $length = length($dir) + ($dir =~ qr{/$} ? 0 : 1);
+    my @files;
+    File::Find::find({ 
+        no_chdir => 1, 
+        wanted => sub {
+            push @files, substr($_,$length) unless -d $_;
+        }
+    }, $dir );
+    return \@files;
+}
+
 1;
 
 =head1 DESCRIPTION
 
-See the command line client L<makedpkg> for more documentation.
+This module implements the makedpkg command line application. See L<makedpkg>
+for more documentation. The application is implemented using L<App::Cmd>.
 
 =head1 SEE ALSO
 
 Several CPAN modules exist to create Debian packages for CPAN modules, e.g.
-L<Debian::Perl>.
+L<Debian::Perl> and L<Module::Build::Debian>. makedpkg is not limited to Perl
+but aims at general applications (including applications written in Perl).
+makedpkg was inspired by L<Dist::Zilla::Plugin::Dpkg::PerlbrewStarman>.
 
 =encoding utf8

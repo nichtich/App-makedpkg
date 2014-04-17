@@ -3,6 +3,8 @@
 #PODNAME: makedpkg
 #VERSION
 
+use strict;
+use warnings;
 use App::makedpkg;
 App::makedpkg->run;
 
